@@ -1,9 +1,16 @@
 # README
 
+Natural affect detection allows to infer basic emotions from social media messages. 
+
+![Architecture](https://raw.githubusercontent.com/inkrement/nade_py/main/docs/architecture.png)
+
+The package can be installed as follows:
+
 ```bash
 pip install git+git://github.com/inkrement/nade.git
 ```
 
+After installation, the module can be loaded and the predict method can be used for inference.
 
 ```python
 from nade import Nade
@@ -11,6 +18,8 @@ from nade import Nade
 n = Nade()
 n.predict('I love this')
 ```
+
+The method returns a dictionary containing the scores for all eight basic emotions.
 
 ```json
 {
