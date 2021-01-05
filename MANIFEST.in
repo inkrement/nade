@@ -1,0 +1,4 @@
+include README.rst
+include nade/data/socialmedia_en/emojis.json
+include nade/data/socialmedia_en/emotion_regression.pbz
+include nade/data/socialmedia_en/textmodel.ftz
