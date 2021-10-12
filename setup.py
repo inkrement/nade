@@ -12,7 +12,7 @@ with open(path.join(path.abspath(path.dirname(__file__)), 'README.md'),
 
 setup(
     name='nade',
-    version='0.0.1',
+    version='0.0.2',
     author='Christian Hotz-Behofsits',
     author_email='chris.hotz.behofsits@gmail.com',
     url='https://github.com/inkrement/nade',
@@ -38,6 +38,6 @@ setup(
     packages=find_packages(exclude=('tests',)),
     include_package_data=True,
     python_requires='>= 3.6',
-    install_requires=["fasttext", "numpy"],
+    install_requires=["fasttext", "numpy", "google-re2", "catboost"],
     license='MIT'
 )

@@ -1,8 +1,10 @@
 import numpy as np
 import fasttext
 import json
-import pickle
-import bz2
+#import pickle
+#import bz2
+from catboost import CatBoostRegressor
+import re2
 from . import __path__ as ROOT_PATH
 
 # hotfix: ignore warning
@@ -12,14 +14,25 @@ class Nade:
     def __init__(self, model = 'socialmedia_en'):
         # TODO: check if model exists
         
-        with open(f'{ROOT_PATH[0]}/data/{model}/emojis.json') as f:
-            self.emojis = json.load(f)
+        #with open(f'{ROOT_PATH[0]}/data/{model}/emojis.json') as f:
+        #    self.emojis = json.load(f)
+            
+        self.emojis = dict()
         
-        self.tm = fasttext.load_model(f'{ROOT_PATH[0]}/data/{model}/textmodel.ftz')
+        with open(f'{ROOT_PATH[0]}/data/{model}/emoji_frequencies.jsonl') as f:
+            for l in f:
+                dct = json.loads(l)
+                self.emojis[dct['emoji']] = dct['hash']
         
-        with bz2.open(f'{ROOT_PATH[0]}/data/{model}/emotion_regression.pbz', 'rb') as f:
-            self.etr = pickle.load(f)
-                
+        
+        self.tm = fasttext.load_model(f'{ROOT_PATH[0]}/data/{model}/nade_250k_hp.ftz')
+        
+        #with bz2.open(f'{ROOT_PATH[0]}/data/{model}/emotion_regression.pbz', 'rb') as f:
+        #    self.etr = pickle.load(f)
+        
+        self.cbreg = CatBoostRegressor()
+        self.cbreg.load_model(f'{ROOT_PATH[0]}/data/{model}/cb_reg.cbm')
+        
         self.labels = [
             'anger', 'anticipation', 'disgust', 
             'fear', 'joy', 'sadness', 'surprise', 
@@ -29,28 +42,39 @@ class Nade:
         self.elookup = { v:k for k, v in self.emojis.items() }
         
             
-    def emoji_predict(self, txt):
-        l_raw, cred = self.tm.predict(txt, k = len(self.emojis))
+    def __emoji_prediction__(self, txt, k = 10):
+        txt = Nade.preprocess(txt)
+        
+        l_raw, cred = self.tm.predict(txt, k = k)
         labels = [int(l[9:]) for l in l_raw]
         
-        return dict(sorted(zip(labels, cred)))
-
-    def reg_predict(self, emoji_predictions):
-        np_features = np.fromiter(emoji_predictions.values(), dtype=float).reshape(1,-1)
-        
-        return dict(zip(self.labels, [ round(v,3) for v in self.etr.predict(np_features)[0].tolist() ]))
+        return zip(labels, cred)
     
-    def predict(self, txt, emoji_prop = False, top_k = 10):
-        txt = Nade.preprocess(txt)
-        e_cred = self.emoji_predict(txt)
+    def predict_emojis(self, txt, k = 10, sort_by_key = False):
+        if k < 0 or k > len(self.emojis):
+            raise Exception(f'please select a k between 0 and {len(self.emojis)}')
         
-        if emoji_prop:
-            top_emojis = sorted(e_cred.items(), reverse=True, key=lambda item: item[1])
+        if sort_by_key:
+            return {self.elookup[k]:v for k, v in sorted(self.__emoji_prediction__(txt, k))}
             
-            topk_emojis = [ { 'emoji': self.elookup[eid] , 'probability': round(p, 3)} for (eid, p) in top_emojis[:top_k]]
-            return topk_emojis, self.reg_predict(e_cred)
+        return { 
+            self.elookup[k]:v 
+            for k, v in sorted(self.__emoji_prediction__(txt, k), key=lambda item: item[1], reverse = True)
+        }
+
+    def reg_predict(self, emoji_scores):
+        raw_reg = self.cbreg.predict(emoji_scores)
+        format_reg = np.around(np.clip(raw_reg, a_min=0, a_max=1), decimals = 3)
         
-        return self.reg_predict(e_cred)
+        return format_reg
+    
+    def predict(self, txt):
+        raw_scores = self.predict_emojis(txt, k=151, sort_by_key=True).values()
+        emoji_scores = np.array(list(raw_scores))
+        
+        format_reg = self.reg_predict(emoji_scores)
+
+        return dict(zip(self.labels, format_reg))
     
     @staticmethod
     def masked_rmse(y_true, y_pred):
@@ -61,5 +85,8 @@ class Nade:
     
     @staticmethod
     def preprocess(txt):
-        txt = txt.lower().replace('\n', ' ')
+        txt = re2.sub('\s*([\p{P}]+)\s*', ' \\1 ', txt)
+        txt = re2.sub('\s+', ' ', txt)
+        txt = txt.lower()
+        txt = txt.strip()
         return txt
