@@ -1,37 +1,38 @@
 import numpy as np
 import fasttext
 import json
-#import pickle
-#import bz2
 from catboost import CatBoostRegressor
 import re2
 from . import __path__ as ROOT_PATH
-
-# hotfix: ignore warning
-fasttext.FastText.eprint = lambda x: None
+from os.path import isfile
 
 class Nade:
-    def __init__(self, model = 'socialmedia_en'):
-        # TODO: check if model exists
+    def __init__(self, model = 'socialmedia_en', full_model=False):
         
-        #with open(f'{ROOT_PATH[0]}/data/{model}/emojis.json') as f:
-        #    self.emojis = json.load(f)
-            
+        # set paths and check them
+        self.model_paths = {
+            'emoji_index': f'{ROOT_PATH[0]}/data/{model}/emoji_frequencies.jsonl',
+            'emoji_clf': f'{ROOT_PATH[0]}/data/{model}/nade_250k_hp.{"bin" if full_model else "ftz"}',
+            'emotion_reg': f'{ROOT_PATH[0]}/data/{model}/cb_reg.cbm'
+        }
+        
+        assert isfile(self.model_paths['emoji_index'])
+        assert isfile(self.model_paths['emoji_clf'])
+        assert isfile(self.model_paths['emotion_reg'])
+        
+        
+        # load emoji index
         self.emojis = dict()
         
-        with open(f'{ROOT_PATH[0]}/data/{model}/emoji_frequencies.jsonl') as f:
+        with open(self.model_paths['emoji_index']) as f:
             for l in f:
                 dct = json.loads(l)
                 self.emojis[dct['emoji']] = dct['hash']
         
-        
-        self.tm = fasttext.load_model(f'{ROOT_PATH[0]}/data/{model}/nade_250k_hp.ftz')
-        
-        #with bz2.open(f'{ROOT_PATH[0]}/data/{model}/emotion_regression.pbz', 'rb') as f:
-        #    self.etr = pickle.load(f)
-        
+        # load models (stage I & stage II)
+        self.tm = fasttext.load_model(self.model_paths['emoji_clf'])
         self.cbreg = CatBoostRegressor()
-        self.cbreg.load_model(f'{ROOT_PATH[0]}/data/{model}/cb_reg.cbm')
+        self.cbreg.load_model(self.model_paths['emoji_reg'])
         
         self.labels = [
             'anger', 'anticipation', 'disgust', 

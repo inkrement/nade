@@ -2,3 +2,4 @@ include README.rst
 include nade/data/socialmedia_en/emoji_frequencies.jsonl
 include nade/data/socialmedia_en/cb_reg.cbm
 include nade/data/socialmedia_en/nade_250k_hp.ftz
+include nade/data/socialmedia_en/nade_250k_hp.bin

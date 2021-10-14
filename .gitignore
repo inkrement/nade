@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# package specific files
+nade/data/socialmedia_en/nade_250k_hp.bin
