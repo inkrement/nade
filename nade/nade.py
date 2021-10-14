@@ -6,6 +6,9 @@ import re2
 from . import __path__ as ROOT_PATH
 from os.path import isfile
 
+# hotfix: ignore warning
+fasttext.FastText.eprint = lambda x: None
+
 class Nade:
     def __init__(self, model = 'socialmedia_en', full_model=False):
         
@@ -32,7 +35,7 @@ class Nade:
         # load models (stage I & stage II)
         self.tm = fasttext.load_model(self.model_paths['emoji_clf'])
         self.cbreg = CatBoostRegressor()
-        self.cbreg.load_model(self.model_paths['emoji_reg'])
+        self.cbreg.load_model(self.model_paths['emotion_reg'])
         
         self.labels = [
             'anger', 'anticipation', 'disgust', 
