@@ -2,7 +2,7 @@ import numpy as np
 import fasttext
 import json
 from catboost import CatBoostRegressor
-import re2
+import regex as re
 from . import __path__ as ROOT_PATH
 from os.path import isfile
 
@@ -89,8 +89,8 @@ class Nade:
     
     @staticmethod
     def preprocess(txt):
-        txt = re2.sub('\s*([\p{P}]+)\s*', ' \\1 ', txt)
-        txt = re2.sub('\s+', ' ', txt)
+        txt = re.sub(r'\s*([\p{P}]+)\s*', ' \\1 ', txt)
+        txt = re.sub(r'\s+', ' ', txt)
         txt = txt.lower()
         txt = txt.strip()
         return txt

@@ -38,6 +38,6 @@ setup(
     packages=find_packages(exclude=('tests',)),
     include_package_data=True,
     python_requires='>= 3.6',
-    install_requires=["fasttext", "numpy", "google-re2", "catboost"],
+    install_requires=["fasttext", "numpy", "catboost"],
     license='MIT'
 )
