@@ -1,4 +1,11 @@
 include README.rst
 include nade/data/socialmedia_en/emoji_frequencies.jsonl
-include nade/data/socialmedia_en/cb_reg.cbm
+include nade/data/socialmedia_en/reg_anger.txt
+include nade/data/socialmedia_en/reg_fear.txt
+include nade/data/socialmedia_en/reg_sadness.txt
+include nade/data/socialmedia_en/reg_joy.txt
+include nade/data/socialmedia_en/reg_disgust.txt
+include nade/data/socialmedia_en/reg_anticipation.txt
+include nade/data/socialmedia_en/reg_trust.txt
+include nade/data/socialmedia_en/reg_surprise.txt
 include nade/data/socialmedia_en/nade_250k_hp.ftz
