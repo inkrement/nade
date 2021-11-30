@@ -1,16 +1,19 @@
 import numpy as np
 import fasttext
 import json
-import lightgbm as lgb
 import regex as re
 from . import __path__ as ROOT_PATH
 from os.path import isfile
+import pyarrow.compute as pcm
 
 # hotfix: ignore warning
 fasttext.FastText.eprint = lambda x: None
 
 class Nade:
-    def __init__(self, model = 'socialmedia_en', full_model=False):
+    '''
+    load models & lookup tables
+    '''
+    def __init__(self, model = 'socialmedia_en', full_model=False, lleaves=False):
         
         # set paths and check them
         self.model_paths = {
@@ -45,48 +48,73 @@ class Nade:
             assert isfile(f'{self.model_paths["base"]}/reg_{l}.txt')
         
         # load gradient boosting models (one per label)
-        self.gb_reg = {
-            l: lgb.Booster(
-                model_file=f'{self.model_paths["base"]}/reg_{l}.txt'
-            ) for l in self.labels 
-        }
+        self.gb_reg = {}
+        
+        if lleaves:
+            import lleaves
+            from pathlib import Path
+            
+            cache_folder = f'{Path.home()}/.nade'
+            Path(cache_folder).mkdir(parents=True, exist_ok=True)
+        else:
+            import lightgbm as lgb
+        
+        for l in self.labels:
+            path = f'{self.model_paths["base"]}/reg_{l}.txt'
+            
+            if lleaves:
+                cache_file = f'{cache_folder}/{l}_lleaves.tmp'
+                
+                self.gb_reg[l] = lleaves.Model(model_file=path)
+                self.gb_reg[l].compile(cache=cache_file)
+                
+            else:
+                self.gb_reg[l] = lgb.Booster(model_file=path)
         
         self.elookup = { v:k for k, v in self.emojis.items() }
-        
-            
-    def __emoji_prediction__(self, txt, k = 10):
-        txt = Nade.preprocess(txt)
-        
-        l_raw, cred = self.tm.predict(txt, k = k)
-        labels = [int(l[9:]) for l in l_raw]
-        
-        return zip(labels, cred)
     
-    def predict_emojis(self, txt, k = 10, sort_by_key = False):
+    '''
+    predict emojis based on text (stage 1)
+    '''
+    def predict_emojis(self, txts, k = 10, sort_by_key = False):
         if k < 0 or k > self.max_k:
             raise Exception(f'please select a k between 0 and {len(self.emojis)}')
         
-        if sort_by_key:
-            return {
-                self.elookup[k]:v for k, v in 
-                sorted(self.__emoji_prediction__(txt, k))
-            }
-            
-        return { 
-            self.elookup[k]:v 
-            for k, v in sorted(
-                self.__emoji_prediction__(txt, k), 
-                key=lambda item: item[1], 
-                reverse = True
-            )
-        }
+        txts = Nade.preprocess(txts)
+        
+        label_raw_np, cred_np = self.tm.predict(txts.tolist(), k = k)
+        py_labels = label_raw_np
 
-    def reg_predict(self, emoji_scores):
-        X = emoji_scores.reshape(1,-1)
+        label_raw_pa = map(
+            lambda x: pa.array(
+                [ int(i.lstrip('__label__')) for i in x], 
+                type=pa.int16()
+            ), 
+            label_raw_np
+        )
+        cred_pa = [ pa.array(i) for i in cred_np ]
+        preds = zip(cred_pa, label_raw_pa)
+        
+        if sort_by_key:
+            preds = Nade.sort_predictions(preds)
+            
+        # convert labels into emojis
+        cred_pa, labels = zip(*preds)
+        labels = map(lambda x: pa.array(self.elookup[i] for i in x.tolist()), labels)
+        
+        return list(zip(cred_pa, labels))
+    
+    '''
+    predict emotions based on emoji (stage 2)
+    '''
+    def predict(self, txts):
+        ft_op = self.predict_emojis(txts, sort_by_key=True, k=151)
+        X, _ = zip(*ft_op)
+        X_np = np.stack(X, axis=0)
         
         raw_reg = { 
             l : np.around(
-                    np.clip(self.gb_reg[l].predict(X)[0], 
+                    np.clip(self.gb_reg[l].predict(X_np), 
                         a_min=0, 
                         a_max=1
                     ), 
@@ -94,28 +122,41 @@ class Nade:
             )
             for l in self.labels
         }
-        
+
         return raw_reg
     
-    def predict(self, txt):
-        raw_scores = np.fromiter(
-            self.predict_emojis(txt, k=self.max_k, sort_by_key=True).values(),
-            dtype=float
-        )
-
-        return self.reg_predict(raw_scores)
     
-    @staticmethod
-    def masked_rmse(y_true, y_pred):
-        se = (y_true - y_pred)**2
-        mask = (y_true > 0).astype(np.int)
-
-        return np.sqrt((se*mask).mean())
+    '''
+    preprocess applies minimal preprocessing
     
+     - add whitespace between punctuation and words
+     - reduce multiple whitespaces to one
+     - convert text to lower case
+     - remove leading and trailing whitespace
+    '''
     @staticmethod
-    def preprocess(txt):
-        txt = re.sub(r'\s*([\p{P}]+)\s*', ' \\1 ', txt)
-        txt = re.sub(r'\s+', ' ', txt)
-        txt = txt.lower()
-        txt = txt.strip()
-        return txt
+    def preprocess(txts):
+        
+        # wrap if not a list
+        if isinstance(txts, str):
+            txts = pa.array([txts], type=pa.string())
+            
+        txts = pcm.replace_substring_regex(txts, pattern=r'\s*([\p{P}]+)\s*', replacement =  ' \\1 ')
+        txts = pcm.replace_substring_regex(txts, pattern=r'\s+', replacement =  ' ')
+        txts = pcm.utf8_lower(txts)
+        txts = pcm.utf8_trim_whitespace(txts)
+
+        return txts
+    
+    '''
+    sort predictions based on index (fixes ordering)
+    '''
+    @staticmethod
+    def sort_predictions(preds):
+        def sort_single(x):
+            c, l = x
+
+            sorting = pcm.sort_indices(l)
+            return (c.take(sorting), l.take(sorting))
+    
+        return map(sort_single, preds)
