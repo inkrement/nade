@@ -11,7 +11,6 @@ fasttext = "^0.9.0"
 numpy = "^1.19"
 lightgbm = "^3.2"
 pyarrow = "^6.0.1"
-regex = "^2021.11.10"
 
 [tool.poetry.dev-dependencies]
 

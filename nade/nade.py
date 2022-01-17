@@ -1,10 +1,10 @@
 import numpy as np
 import fasttext
 import json
-import regex as re
 from . import __path__ as ROOT_PATH
 from os.path import isfile
 import pyarrow.compute as pcm
+import pyarrow as pa
 
 # hotfix: ignore warning
 fasttext.FastText.eprint = lambda x: None
