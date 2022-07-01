@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 # package specific files
-nade/data/socialmedia_en/nade_250k_hp.bin
+.DS_Store
