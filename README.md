@@ -45,6 +45,10 @@ pip install git+git://github.com/inkrement/nade.git
 
 The prediction method features a _lleaves_ option that provides much faster inference. However, you will have to install [lleaves](https://github.com/siboehm/lleaves) first.
 
+## Notes
+
+ - Usage on Apple M1 chips require additional dependencies (i.e., `brew install cmake libomp`)
+
 ## Links
 
  - [Nade Explorer](https://nade.rds.wu.ac.at)
