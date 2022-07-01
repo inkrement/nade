@@ -27,7 +27,8 @@ The method returns a dictionary containing the scores for all eight basic emotio
  'sadness': [0.02],
  'surprise': [0.142],
  'trust': [0.242]
-}```
+}
+```
 
 
 ## Installation
