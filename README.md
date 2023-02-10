@@ -38,7 +38,7 @@ The method returns a dictionary containing the scores for all eight basic emotio
 The package can be installed as follows:
 
 ```bash
-pip install git+git://github.com/inkrement/comingsoon.git
+pip install git+https://github.com/inkrement/comingsoon.git
 ```
 
 ## Performance
