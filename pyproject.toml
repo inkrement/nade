@@ -9,11 +9,11 @@ homepage = "https://nade.rds.wu.ac.at"
 repository = "https://github.com/inkrement/nade"
 
 [tool.poetry.dependencies]
-python = "^3.6"
-fasttext = "^0.9.0"
-numpy = "^1.19"
-lightgbm = "^3.2"
-pyarrow = "^6.0.1"
+python = ">= 3.6"
+fasttext = ">= 0.9.0"
+numpy = ">= 1.19"
+lightgbm = ">= 3.2"
+pyarrow = ">= 6.0.1"
 
 [tool.poetry.dev-dependencies]
 
