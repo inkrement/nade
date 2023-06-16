@@ -9,6 +9,6 @@ def test_loading():
 
 def test_emojiPrediction():
     n = nade.Nade()
-    pred_emojis = n.emoji_predict('test')
+    cred_pa, labels = n.predict_emojis('test', k = n.max_k)[0]
 
-    assert len(n.emojis) == len(pred_emojis)
+    assert len(n.emojis) == len(cred_pa)
