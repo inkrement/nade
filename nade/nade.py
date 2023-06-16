@@ -13,13 +13,13 @@ class Nade:
     '''
     load models & lookup tables
     '''
-    def __init__(self, model = 'socialmedia_en', full_model=False, lleaves=False):
+    def __init__(self, model = 'socialmedia_en', lleaves=False):
         
         # set paths and check them
         self.model_paths = {
             'base': f'{ROOT_PATH[0]}/data/{model}',
             'emoji_index': f'{ROOT_PATH[0]}/data/{model}/emoji_frequencies.jsonl',
-            'emoji_clf': f'{ROOT_PATH[0]}/data/{model}/nade_250k_hp.{"bin" if full_model else "ftz"}'
+            'emoji_clf': f'{ROOT_PATH[0]}/data/{model}/nade_250k_hp.ftz'
         }
         
         assert isfile(self.model_paths['emoji_index'])
