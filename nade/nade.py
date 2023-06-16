@@ -36,16 +36,15 @@ class Nade:
         self.max_k = len(self.emojis)
         
         # load models (stage I & stage II)
-        self.tm = fasttext.load_model(self.model_paths['emoji_clf'])
+        self.tm = fasttext.load_model(
+            self.model_paths['emoji_clf']
+        )
         
         self.labels = [
             'anger', 'anticipation', 'disgust', 
             'fear', 'joy', 'sadness', 'surprise', 
             'trust'
         ]
-        
-        for l in self.labels:
-            assert isfile(f'{self.model_paths["base"]}/reg_{l}.txt')
         
         # load gradient boosting models (one per label)
         self.gb_reg = {}
@@ -61,7 +60,19 @@ class Nade:
         
         for l in self.labels:
             path = f'{self.model_paths["base"]}/reg_{l}.txt'
-            
+            gz_path = f'{path}.gz'
+
+            # unzip if not existing
+            if not isfile(path) and isfile(gz_path):
+                import gzip
+                import shutil
+
+                print(f'unpack {l} model')
+
+                with gzip.open(gz_path, 'rb') as f_in:
+                    with open(path, 'wb') as f_out:
+                        shutil.copyfileobj(f_in, f_out)
+                        
             if lleaves:
                 cache_file = f'{cache_folder}/{l}_lleaves.tmp'
                 
