@@ -166,7 +166,7 @@ class Nade:
         txts = pcm.utf8_trim_whitespace(txts)
 
         return txts
-    
+
     '''
     mimics np.clip using pyarrow
 
