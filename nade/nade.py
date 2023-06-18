@@ -1,4 +1,3 @@
-import numpy as np
 import fasttext
 import json
 from . import __path__ as ROOT_PATH
@@ -14,7 +13,7 @@ class Nade:
     '''
     load models & lookup tables
     '''
-    def __init__(self, model='socialmedia_en', lleaves=False):
+    def __init__(self, model: str = 'socialmedia_en', lleaves: bool = False):
         root_pth = ROOT_PATH[0]
 
         # set paths and check them
@@ -88,7 +87,9 @@ class Nade:
     '''
     predict emojis based on text (stage 1)
     '''
-    def predict_emojis(self, txts, k=10, sort_by_key=False):
+    def predict_emojis(
+            self, txts: list[str], k: int = 10, sort_by_key: bool = False
+            ):
         if k < 0 or k > self.max_k:
             raise Exception(
                 f'please select a k between 0 and {len(self.emojis)}'
@@ -122,18 +123,18 @@ class Nade:
     '''
     predict emotions based on emoji (stage 2)
     '''
-    def predict(self, txts):
+    def predict(self, txts: list[str]) -> list[str]:
         ft_op = self.predict_emojis(txts, sort_by_key=True, k=151)
         X, _ = zip(*ft_op)
-        X_np = np.stack(X, axis=0)
 
         raw_reg = {
-            lbl: np.around(
-                np.clip(self.gb_reg[lbl].predict(X_np),
-                        a_min=0,
-                        a_max=1
-                        ),
-                decimals=3
+            lbl: pcm.around(
+                Nade.clip(
+                    self.gb_reg[lbl].predict(list(X)),
+                    a_min=0,
+                    a_max=1
+                ),
+                ndigits=3
             )
             for lbl in self.labels
         }
@@ -149,7 +150,7 @@ class Nade:
      - remove leading and trailing whitespace
     '''
     @staticmethod
-    def preprocess(txts):
+    def preprocess(txts: list[str]) -> list[str]:
 
         # wrap if not a list
         if isinstance(txts, str):
@@ -165,6 +166,21 @@ class Nade:
         txts = pcm.utf8_trim_whitespace(txts)
 
         return txts
+    
+    '''
+    mimics np.clip using pyarrow
+
+    clips arr into a range between a_min and a_max
+    '''
+    @staticmethod
+    def clip(arr: list[float], a_min: float = 0.0, a_max: float = 1.0):
+        return pcm.case_when(
+            pcm.make_struct(
+                pcm.greater(arr, a_max),
+                pcm.less(arr, a_min)
+            ),
+            a_max, a_min, arr
+        )
 
     '''
     sort predictions based on index (fixes ordering)
