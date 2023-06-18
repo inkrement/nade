@@ -1,3 +1,4 @@
+from typing import List
 import fasttext
 import json
 from . import __path__ as ROOT_PATH
@@ -88,7 +89,7 @@ class Nade:
     predict emojis based on text (stage 1)
     '''
     def predict_emojis(
-            self, txts: list[str], k: int = 10, sort_by_key: bool = False
+            self, txts: List[str], k: int = 10, sort_by_key: bool = False
             ):
         if k < 0 or k > self.max_k:
             raise Exception(
@@ -123,7 +124,7 @@ class Nade:
     '''
     predict emotions based on emoji (stage 2)
     '''
-    def predict(self, txts: list[str]) -> list[str]:
+    def predict(self, txts: List[str]) -> List[str]:
         ft_op = self.predict_emojis(txts, sort_by_key=True, k=151)
         X, _ = zip(*ft_op)
 
@@ -150,7 +151,7 @@ class Nade:
      - remove leading and trailing whitespace
     '''
     @staticmethod
-    def preprocess(txts: list[str]) -> list[str]:
+    def preprocess(txts: List[str]) -> List[str]:
 
         # wrap if not a list
         if isinstance(txts, str):
@@ -173,7 +174,7 @@ class Nade:
     clips arr into a range between a_min and a_max
     '''
     @staticmethod
-    def clip(arr: list[float], a_min: float = 0.0, a_max: float = 1.0):
+    def clip(arr: List[float], a_min: float = 0.0, a_max: float = 1.0):
         return pcm.case_when(
             pcm.make_struct(
                 pcm.greater(arr, a_max),
