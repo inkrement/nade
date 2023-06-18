@@ -2,4 +2,4 @@
 """Module init-file.
 """
 
-from .nade import Nade
+from .nade import Nade # noqa
