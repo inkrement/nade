@@ -5,6 +5,7 @@ from . import __path__ as ROOT_PATH
 from os.path import isfile
 import pyarrow.compute as pcm
 import pyarrow as pa
+import warnings
 
 # hotfix: ignore warning
 fasttext.FastText.eprint = lambda x: None
@@ -69,7 +70,7 @@ class Nade:
                 import gzip
                 import shutil
 
-                print(f'unpack {e_lbl} model')
+                warnings.warn(f'unpack {e_lbl} model')
 
                 with gzip.open(gz_path, 'rb') as f_in:
                     with open(path, 'wb') as f_out:
