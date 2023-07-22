@@ -125,7 +125,8 @@ class Nade:
     '''
     predict emotions based on emoji (stage 2)
     '''
-    def predict(self, txts: List[str]) -> List[str]:
+    def predict(self, txts: List[str], dimensions: None | List[str]) -> List[str]:
+        dims_ = dimensions if dimensions not None else self.labels
         ft_op = self.predict_emojis(txts, sort_by_key=True, k=151)
         X, _ = zip(*ft_op)
 
@@ -138,7 +139,7 @@ class Nade:
                 ),
                 ndigits=3
             )
-            for lbl in self.labels
+            for lbl in dims_
         }
 
         return raw_reg
