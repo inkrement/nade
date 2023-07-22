@@ -131,7 +131,7 @@ class Nade:
         X, _ = zip(*ft_op)
 
         raw_reg = {
-            lbl: pcm.around(
+            lbl: pcm.round(
                 Nade.clip(
                     self.gb_reg[lbl].predict(list(X)),
                     a_min=0,
