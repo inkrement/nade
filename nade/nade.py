@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 import fasttext
 import json
 from . import __path__ as ROOT_PATH
