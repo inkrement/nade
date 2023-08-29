@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 import fasttext
 import json
 from . import __path__ as ROOT_PATH
@@ -125,8 +125,13 @@ class Nade:
     '''
     predict emotions based on emoji (stage 2)
     '''
-    def predict(self, txts: List[str], dimensions: Optional[List[str]] = None) -> List[str]:
+    def predict(
+            self, input: Union[List[str], str],
+            dimensions: Optional[List[str]] = None
+            ) -> List[str]:
         dims_ = dimensions if dimensions is not None else self.labels
+        txts = input if isinstance(input, list) else [input]
+
         ft_op = self.predict_emojis(txts, sort_by_key=True, k=151)
         X, _ = zip(*ft_op)
 
