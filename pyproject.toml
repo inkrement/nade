@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "nade"
-version = "0.2.4"
+version = "0.2.7"
 description = "Natural affect detection allows to infer basic emotions from social media messages"
-authors = ["Christian Hotz-Behofsits <chris.hotz.behofsits@gmail.com>"]
+authors = ["Christian Hotz-Behofsits <chris@hotz-behofsits.com>"]
 license = "MIT"
 readme = "README.md"
 homepage = "https://nade.rds.wu.ac.at"

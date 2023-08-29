@@ -148,7 +148,7 @@ class Nade:
             A dictionary with the predicted values for each dimension.
         """
         dims_ = dimensions if dimensions is not None else self.labels
-        txts = input if isinstance(input, list) else [input]
+        txts = [input] if isinstance(input, str) else input
 
         ft_op = self.predict_emojis(txts, sort_by_key=True, k=151)
         X, _ = zip(*ft_op)
@@ -182,9 +182,8 @@ class Nade:
             Preprocessed text.
         """
 
-        # wrap if not a list
-        if isinstance(txts, str):
-            txts = pa.array([txts], type=pa.string())
+        # convert to pyarrow array
+        txts = pa.array(txts, type=pa.string())
 
         txts = pcm.replace_substring_regex(
             txts, pattern=r'\s*([\p{P}]+)\s*', replacement=' \\1 '
