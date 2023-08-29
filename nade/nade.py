@@ -12,10 +12,10 @@ fasttext.FastText.eprint = lambda x: None
 
 
 class Nade:
-    '''
-    load models & lookup tables
-    '''
     def __init__(self, model: str = 'socialmedia_en', lleaves: bool = False):
+        """
+        Loads the models and lookup tables.
+        """
         root_pth = ROOT_PATH[0]
 
         # set paths and check them
@@ -86,12 +86,22 @@ class Nade:
 
         self.elookup = {v: k for k, v in self.emojis.items()}
 
-    '''
-    predict emojis based on text (stage 1)
-    '''
     def predict_emojis(
             self, txts: List[str], k: int = 10, sort_by_key: bool = False
             ):
+        """
+        Predicts emojis based on input text.
+
+        Args:
+            txts: Input text.
+            k: Number of emojis to predict.
+            sort_by_key: If True, the predictions are sorted by their
+                confidence.
+
+        Returns:
+            A list of tuples with the predicted emojis and their confidence.
+        """
+
         if k < 0 or k > self.max_k:
             raise Exception(
                 f'please select a k between 0 and {len(self.emojis)}'
@@ -122,13 +132,21 @@ class Nade:
 
         return list(zip(cred_pa, labels))
 
-    '''
-    predict emotions based on emoji (stage 2)
-    '''
     def predict(
             self, input: Union[List[str], str],
             dimensions: Optional[List[str]] = None
             ) -> List[str]:
+        """
+        Predicts emojis, basic emotions, and vad based on input text.
+
+        Args:
+            input: Input text.
+            dimensions: List of dimensions to predict. If None, all dimensions
+                are predicted.
+
+        Returns:
+            A dictionary with the predicted values for each dimension.
+        """
         dims_ = dimensions if dimensions is not None else self.labels
         txts = input if isinstance(input, list) else [input]
 
@@ -149,16 +167,20 @@ class Nade:
 
         return raw_reg
 
-    '''
-    preprocess applies minimal preprocessing
-
-     - add whitespace between punctuation and words
-     - reduce multiple whitespaces to one
-     - convert text to lower case
-     - remove leading and trailing whitespace
-    '''
     @staticmethod
     def preprocess(txts: List[str]) -> List[str]:
+        """
+        Applies minimal preprocessing to the input text. This includes
+        adding whitespace between punctuation and words, reducing multiple
+        whitespaces to one, converting text to lower case, and removing
+        leading and trailing whitespace.
+
+        Args:
+            txts: Input text.
+
+        Returns:
+            Preprocessed text.
+        """
 
         # wrap if not a list
         if isinstance(txts, str):
@@ -175,13 +197,21 @@ class Nade:
 
         return txts
 
-    '''
-    mimics np.clip using pyarrow
-
-    clips arr into a range between a_min and a_max
-    '''
     @staticmethod
     def clip(arr: List[float], a_min: float = 0.0, a_max: float = 1.0):
+        """
+        Mimics np.clip using pyarrow.
+
+        Clips arr into a range between a_min and a_max.
+
+        Args:
+            arr: Input array.
+            a_min: Minimum value.
+            a_max: Maximum value.
+
+        Returns:
+            Clipped array.
+        """
         return pcm.case_when(
             pcm.make_struct(
                 pcm.greater(arr, a_max),
@@ -196,6 +226,15 @@ class Nade:
     @staticmethod
     def sort_predictions(preds):
         def sort_single(x):
+            """
+            Sorts a single prediction.
+
+            Args:
+                x: A tuple with the confidence and the label.
+
+            Returns:
+                A tuple with the sorted confidence and the sorted label.
+            """
             c, lbl = x
 
             sorting = pcm.sort_indices(lbl)
