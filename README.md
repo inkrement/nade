@@ -1,6 +1,6 @@
 # Readme
 
-**[try it](https://nade.rds.wu.ac.at)**
+**[try it](https://nade-explorer.inkrement.ai/)**
 
 This package allows to infer basic emotions from social media messages. While human raters are often too resource-intensive, lexical approaches face challenges regarding incomplete vocabulary and the handling of informal language. Even advanced machine learning-based approaches require substantial resources (expert knowledge, programming skills, annotated data sets, extensive computational capabilities) and tend to gauge the mere presence, not the intensity, of emotion. This package solves this issue by predicting a vast array of emojis based on the surrounding text, then reduces these predicted emojis to an established set of eight basic emotions.
 
