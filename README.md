@@ -51,6 +51,6 @@ The prediction method features a _lleaves_ option that provides much faster infe
 
 ## Links
 
- - [Web user-interface](https://nade.rds.wu.ac.at)
+ - [Web user-interface](https://nade-explorer.inkrement.ai/)
  - Paper: coming soon
 
