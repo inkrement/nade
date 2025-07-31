@@ -186,10 +186,10 @@ class Nade:
         txts = pa.array(txts, type=pa.string())
 
         txts = pcm.replace_substring_regex(
-            txts, pattern=r'\s*([\p{P}]+)\s*', replacement=' \\1 '
+            txts, r'\s*([\p{P}]+)\s*', r' \1 '
             )
         txts = pcm.replace_substring_regex(
-            txts, pattern=r'\s+', replacement=' '
+            txts, r'\s+', ' '
             )
         txts = pcm.utf8_lower(txts)
         txts = pcm.utf8_trim_whitespace(txts)
@@ -211,13 +211,12 @@ class Nade:
         Returns:
             Clipped array.
         """
-        return pcm.case_when(
-            pcm.make_struct(
-                pcm.greater(arr, a_max),
-                pcm.less(arr, a_min)
-            ),
-            a_max, a_min, arr
+        cond = pcm.make_struct(
+            pcm.greater(arr, a_max),
+            pcm.less(arr, a_min),
+            field_names=("gt", "lt")
         )
+        return pcm.case_when(cond, a_max, a_min, arr)
 
     '''
     sort predictions based on index (fixes ordering)
